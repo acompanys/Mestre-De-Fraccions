@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mestre de Fraccions - Arcade Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #2c3e50, #4ca1af); 
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --primary: #FF6B6B;      
+            --secondary: #4ECDC4;    
+            --accent: #FFE66D;       
+            --text-main: #2F3542;
+            --success: #2ecc71;
+            --error: #ff4757;
+            --warning: #ff9f43;
+            --purple: #a55eea;
+            --info: #3498db; 
+            --font-display: 'Fredoka One', cursive;
+            --font-body: 'Nunito', sans-serif;
+            --shadow-hard: 4px 4px 0px rgba(0,0,0,0.2); 
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            --card-bg: rgba(30, 40, 50, 0.95);
+            --text-main: #dfe6e9;    
+            --primary: #ff7675;      
+            --secondary: #55efc4;
+            --info: #2980b9;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; 
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite; 
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* UI Elements */
+        header {
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: #fff;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+        }
+
+        .theme-toggle {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: var(--font-body);
+            backdrop-filter: blur(5px);
+            transition: transform 0.1s;
+        }
+        
+        .theme-toggle:active { transform: scale(0.95); }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Card Container */
+        .game-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            display: none;
+            position: relative;
+            border: 4px solid rgba(255,255,255,0.1);
+        }
+
+        .game-card.active {
+            display: block;
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        /* Menu Rows for Buttons + Help */
+        .menu-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Controls Section */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 1.5rem 0;
+        }
+
+        .difficulty-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        body.dark-mode .difficulty-control { background: rgba(255,255,255,0.05); }
+
+        .difficulty-control.active-simplify {
+            border-color: var(--warning);
+            background: rgba(255, 159, 67, 0.1);
+        }
+
+        .difficulty-control.active-hard {
+            border-color: var(--purple);
+            background: rgba(165, 94, 234, 0.1);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        /* Checkbox specific colors */
+        #simplifyToggle:checked + .slider { background-color: var(--warning); }
+        #hardToggle:checked + .slider { background-color: var(--purple); }
+
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .diff-label {
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: var(--font-display);
+            padding: 1rem 1.5rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: #fff;
+            position: relative;
+            transition: transform 0.1s;
+            text-transform: uppercase;
+            box-shadow: 0px 4px 0px rgba(0,0,0,0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0px 0px 0px transparent !important;
+        }
+
+        .btn-play {
+            flex-grow: 1;
+            background-color: var(--primary);
+            box-shadow: 0px 4px 0px #c0392b; 
+        }
+
+        .btn-help {
+            width: 60px;
+            background-color: var(--info);
+            box-shadow: 0px 4px 0px #2980b9;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            box-shadow: 0px 4px 0px #16a085;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 3px solid var(--text-main);
+            color: var(--text-main);
+            box-shadow: none;
+            padding: 0.8rem;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        /* Help View Styling */
+        .help-content {
+            text-align: left;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .example-box {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .eq-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Adjust Fractions for Help View */
+        .example-box .fraction {
+            font-size: 0.9em; /* Scale down relative to container */
+            vertical-align: middle;
+            margin: 0;
+        }
+        .example-box .numerator {
+            border-bottom-width: 2px; /* Thinner line for smaller text */
+            padding: 0 4px;
+        }
+        .example-box .denominator {
+            padding: 2px 4px 0;
+        }
+
+        .highlight { color: var(--primary); }
+        .highlight-sec { color: var(--secondary); }
+
+        /* Game Elements */
+        .hud-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            gap: 10px;
+        }
+
+        .score-pill {
+            background: var(--accent);
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow-hard);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .indicators-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-indicator {
+            font-size: 0.9rem;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+
+        .ind-simplify {
+            background-color: var(--warning);
+            display: none;
+        }
+        
+        .ind-hard {
+            background-color: var(--purple);
+            display: none;
+        }
+
+        .progress-container {
+            flex-grow: 1;
+            margin: 0 15px;
+            background: rgba(0,0,0,0.1);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(0,0,0,0.1);
+            min-width: 100px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Math Area */
+        .problem-container {
+            font-size: 3.5rem;
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-family: var(--font-display);
+            color: var(--text-main);
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .numerator {
+            border-bottom: 4px solid currentColor;
+            padding: 0 10px;
+            text-align: center;
+        }
+
+        .denominator {
+            padding: 5px 10px 0;
+            text-align: center;
+        }
+
+        /* Inputs - Reverted to number for best mobile experience */
+        input[type="number"] {
+            width: 100px;
+            height: 70px;
+            font-size: 2rem;
+            text-align: center;
+            border: 4px solid #ddd;
+            border-radius: 15px;
+            background-color: #fff;
+            color: #333;
+            font-family: var(--font-display);
+            transition: all 0.2s;
+            -moz-appearance: textfield;
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        /* Assistant Character */
+        .assistant-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 1.5rem 0;
+            min-height: 80px;
+        }
+
+        .char-avatar {
+            font-size: 3.5rem;
+            filter: drop-shadow(2px 4px 0px rgba(0,0,0,0.2));
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        /* Animation States */
+        .char-idle { animation: float 3s ease-in-out infinite; }
+        .char-happy { animation: jump 0.6s ease-in-out infinite; }
+        .char-sad { animation: sadShake 1s ease-in-out; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px) scale(1.1); } }
+        @keyframes sadShake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+
+        .speech-bubble {
+            position: relative;
+            background: #fff;
+            border: 3px solid var(--text-main);
+            border-radius: 15px;
+            padding: 15px 20px;
+            color: #333;
+            font-family: var(--font-body);
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+            max-width: 300px;
+            text-align: left;
+            opacity: 0; 
+            transform: scale(0.9);
+            transition: all 0.3s;
+        }
+
+        .speech-bubble.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 12px 12px 12px 0;
+            border-style: solid;
+            border-color: transparent var(--text-main) transparent transparent;
+        }
+
+        body.dark-mode .speech-bubble {
+            background: #2d3436;
+            color: #fff;
+            border-color: #fff;
+        }
+        body.dark-mode .speech-bubble::after {
+            border-color: transparent #fff transparent transparent;
+        }
+
+        /* Combo & Particles */
+        .combo-text {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-shadow: 2px 2px 0px #000;
+            transform: rotate(10deg);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .combo-active {
+            opacity: 1;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse { from { transform: scale(1) rotate(10deg); } to { transform: scale(1.1) rotate(10deg); } }
+
+        .star-container {
+            font-size: 4rem;
+            margin: 1rem 0;
+            color: #bdc3c7; 
+        }
+        
+        .star.earned {
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(255, 230, 109, 0.8);
+            animation: spinStar 0.6s ease-out backwards;
+        }
+        
+        .star:nth-child(2) { animation-delay: 0.2s; }
+        .star:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes spinStar {
+            0% { transform: scale(0) rotate(-180deg); }
+            80% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 100;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        /* Feedback specialized */
+        .feedback-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeeba;
+            animation: shake 0.4s;
+        }
+
+        @media (max-width: 600px) {
+            .problem-container { font-size: 2.5rem; }
+            input[type="number"] { width: 80px; height: 55px; font-size: 1.5rem; }
+            .game-card { padding: 1.5rem; }
+            h2 { font-size: 1.5rem; }
+            .assistant-area { flex-direction: column; gap: 10px; text-align: center; }
+            .speech-bubble::after {
+                left: 50%;
+                top: -12px;
+                transform: translateX(-50%) rotate(90deg);
+            }
+            .controls-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">🎮 MESTRE DE FRACCIONS</div>
+        <button id="themeToggle" class="theme-toggle">
+            💡 Mode
+        </button>
+    </header>
+
+    <main>
+        <!-- MENU VIEW -->
+        <div id="menuView" class="game-card active">
+            <h2>Tria la teva missió</h2>
+            <div style="font-size: 4rem; margin: 10px;">🤖</div>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">Hola! Sóc en <strong>Bit</strong>. Configura el repte!</p>
+            
+            <!-- Controls Switch -->
+            <div class="controls-grid">
+                <div class="difficulty-control" id="simplifyControl">
+                    <label class="switch">
+                        <input type="checkbox" id="simplifyToggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="diff-label">Mode Simplificat ✂️</span>
+                    <small>Obliga a reduir fraccions</small>
+                </div>
+
+                <div class="difficulty-control" id="hardControl">
+                    <label class="switch">
+                        <input type="checkbox" id="hardToggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="diff-label">Mode Difícil 💪</span>
+                    <small>Números grans i negatius</small>
+                </div>
+            </div>
+
+            <!-- LEVEL BUTTONS WITH HELP -->
+            <div class="menu-row">
+                <button class="btn btn-play" onclick="startGame('sameDenom')">
+                    Nivell 1: Mateix Denominador
+                </button>
+                <button class="btn btn-help" onclick="showHelp('sameDenom')">❔</button>
+            </div>
+
+            <div class="menu-row">
+                <button class="btn btn-play" onclick="startGame('diffDenom')">
+                    Nivell 2: Diferent Denominador
+                </button>
+                <button class="btn btn-help" onclick="showHelp('diffDenom')">❔</button>
+            </div>
+
+            <div class="menu-row">
+                <button class="btn btn-play" onclick="startGame('multDiv')">
+                    Nivell 3: Multiplicació i Divisió
+                </button>
+                <button class="btn btn-help" onclick="showHelp('multDiv')">❔</button>
+            </div>
+        </div>
+
+        <!-- HELP VIEW -->
+        <div id="helpView" class="game-card">
+            <h2 id="helpTitle">Com es fa?</h2>
+            <div id="helpContent" class="help-content">
+                <!-- Content injected via JS -->
+            </div>
+            <button class="btn btn-outline" onclick="showMenu()">Tornar al Menú</button>
+        </div>
+
+        <!-- GAME VIEW -->
+        <div id="gameView" class="game-card">
+            <div class="combo-text" id="comboDisplay">COMBO x2! 🔥</div>
+            
+            <div class="hud-bar">
+                <div class="score-pill">
+                    <span>🏆</span>
+                    <span id="currentScore">0</span>
+                </div>
+                
+                <div class="indicators-group">
+                    <div id="indSimplify" class="mode-indicator ind-simplify">✂️ Simplificat</div>
+                    <div id="indHard" class="mode-indicator ind-hard">💪 Difícil</div>
+                </div>
+
+                <div class="progress-container">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div style="font-size: 1rem; opacity: 0.8;">
+                    Q: <span id="qNumber">1</span>/10
+                </div>
+            </div>
+            
+            <div id="problemContainer" class="problem-container">
+                <!-- Javascript will inject the problem here -->
+            </div>
+
+            <!-- Assistant Area -->
+            <div class="assistant-area">
+                <div id="charAvatar" class="char-avatar char-idle">🤖</div>
+                <div id="speechBubble" class="speech-bubble visible">
+                    Preparat? Som-hi!
+                </div>
+            </div>
+
+            <div id="feedbackArea" class="feedback-msg"></div>
+
+            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 10px;">
+                <button class="btn btn-outline" onclick="showMenu()" style="width: auto;">❌ Sortir</button>
+                <button id="actionButton" class="btn btn-secondary" onclick="checkAnswer()">🚀 Comprovar</button>
+            </div>
+        </div>
+
+        <!-- RESULTS VIEW -->
+        <div id="resultsView" class="game-card">
+            <h2>Nivell Completat!</h2>
+            
+            <div class="star-container" id="starsContainer">
+                <span class="star">★</span>
+                <span class="star">★</span>
+                <span class="star">★</span>
+            </div>
+
+            <div style="font-size: 1.5rem; margin: 1rem 0; font-family: var(--font-display);">
+                Puntuació: <span id="finalScore" style="color: var(--primary);">0</span>/10
+            </div>
+            
+            <div id="finalAvatar" style="font-size: 5rem; margin-bottom: 10px;">🤖</div>
+            <p id="finalMessage" style="font-size: 1.2rem; margin-bottom: 2rem;"></p>
+            
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <button class="btn btn-secondary" onclick="restartGame()">🔄 Tornar a jugar</button>
+                <button class="btn btn-outline" onclick="showMenu()">🏠 Menú Principal</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- HELP CONTENT WITH VISUAL FRACTIONS ---
+        const helpData = {
+            sameDenom: {
+                title: "Suma/Resta (Mateix Denominador)",
+                html: `
+                    <p>Quan el número de sota (denominador) és igual, és molt fàcil!</p>
+                    <ol>
+                        <li>Sumes o restes els números de <span class="highlight">dalt</span> (numeradors).</li>
+                        <li>Deixes el número de <span class="highlight-sec">sota</span> igual.</li>
+                    </ol>
+                    <div class="example-box">
+                        <div class="eq-row">
+                            <div class="fraction"><span class="numerator">2</span><span class="denominator">7</span></div>
+                            <div>+</div>
+                            <div class="fraction"><span class="numerator">3</span><span class="denominator">7</span></div>
+                            <div>=</div>
+                            <div class="fraction"><span class="numerator highlight">5</span><span class="denominator">7</span></div>
+                        </div>
+                    </div>
+                    <p>No sumis els denominadors!</p>
+                `
+            },
+            diffDenom: {
+                title: "Suma/Resta (Diferent Denominador)",
+                html: `
+                    <p>Quan els denominadors són diferents, utilitza el <strong>truc de la papallona</strong> (o producte creuat):</p>
+                    <div class="example-box">
+                         <div class="eq-row">
+                            <div class="fraction"><span class="numerator">1</span><span class="denominator">2</span></div>
+                            <div>+</div>
+                            <div class="fraction"><span class="numerator">1</span><span class="denominator">3</span></div>
+                        </div>
+                    </div>
+                    <ol>
+                        <li>Multiplica els denominadors per trobar el nou denominador:<br>2 × 3 = <strong>6</strong></li>
+                        <li>Multiplica en creu per trobar els nous numeradors:<br>
+                        (1 × 3) + (1 × 2) = 3 + 2 = <strong>5</strong></li>
+                    </ol>
+                    <div class="example-box">
+                        <div class="eq-row">
+                            <div>Resultat:</div>
+                            <div class="fraction"><span class="numerator">5</span><span class="denominator">6</span></div>
+                        </div>
+                    </div>
+                `
+            },
+            multDiv: {
+                title: "Multiplicació i Divisió",
+                html: `
+                    <p><strong>Multiplicació (×):</strong><br>
+                    Es fa <em>en línia</em>. Multiplica el de dalt pel de dalt, i el de sota pel de sota.</p>
+                    <div class="example-box">
+                        <div class="eq-row">
+                            <div class="fraction"><span class="numerator">2</span><span class="denominator">3</span></div>
+                            <div>×</div>
+                            <div class="fraction"><span class="numerator">1</span><span class="denominator">4</span></div>
+                            <div>=</div>
+                            <div class="fraction"><span class="numerator">2</span><span class="denominator">12</span></div>
+                        </div>
+                    </div>
+                    <hr style="border:1px solid #ddd; margin: 15px 0; width: 100%;">
+                    <p><strong>Divisió (:):</strong><br>
+                    Es fa <em>en creu</em>. Multiplica el primer de dalt pel segon de sota.</p>
+                    <div class="example-box">
+                         <div class="eq-row">
+                            <div class="fraction"><span class="numerator">1</span><span class="denominator">2</span></div>
+                            <div>:</div>
+                            <div class="fraction"><span class="numerator">3</span><span class="denominator">5</span></div>
+                            <div>=</div>
+                            <div class="fraction"><span class="numerator">5</span><span class="denominator">6</span></div>
+                        </div>
+                        <div style="font-size:0.8em; margin-top:5px;">(1×5) i (2×3)</div>
+                    </div>
+                `
+            }
+        };
+
+        // --- STATE MANAGEMENT ---
+        const state = {
+            mode: null,
+            score: 0,
+            currentQuestion: 0,
+            totalQuestions: 10,
+            currentProblem: null,
+            isAnswerChecked: false,
+            combo: 0,
+            simplifyMode: false,
+            hardMode: false
+        };
+
+        const phrases = {
+            start: ["Som-hi!", "A calcular!", "Preparat per guanyar?", "Tu pots!"],
+            correct: ["Molt bé! 🎉", "Ets un geni!", "Correcte! Continua així!", "Boom! Encertada!", "Impressionant!"],
+            wrong: ["Gairebé! Torna-ho a provar.", "Ups! Revisa els càlculs.", "No et rendeixis, tu pots!", "Fixa't bé en el denominador.", "Dels errors s'aprèn!"]
+        };
+
+        // --- UI LOGIC ---
+        const simplifyToggle = document.getElementById('simplifyToggle');
+        const simplifyControl = document.getElementById('simplifyControl');
+        const hardToggle = document.getElementById('hardToggle');
+        const hardControl = document.getElementById('hardControl');
+        
+        simplifyToggle.addEventListener('change', (e) => {
+            state.simplifyMode = e.target.checked;
+            if(state.simplifyMode) simplifyControl.classList.add('active-simplify');
+            else simplifyControl.classList.remove('active-simplify');
+        });
+
+        hardToggle.addEventListener('change', (e) => {
+            state.hardMode = e.target.checked;
+            if(state.hardMode) hardControl.classList.add('active-hard');
+            else hardControl.classList.remove('active-hard');
+        });
+
+        // --- THEME LOGIC ---
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            body.classList.add('dark-mode');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+        });
+
+        // --- ASSISTANT LOGIC ---
+        function setAssistantState(emotion, message) {
+            const avatar = document.getElementById('charAvatar');
+            const bubble = document.getElementById('speechBubble');
+            
+            avatar.className = 'char-avatar';
+            void avatar.offsetWidth; 
+
+            if (emotion === 'idle') {
+                avatar.classList.add('char-idle');
+                avatar.textContent = '🤖';
+            } else if (emotion === 'happy') {
+                avatar.classList.add('char-happy');
+                avatar.textContent = '🤩'; 
+            } else if (emotion === 'sad') {
+                avatar.classList.add('char-sad');
+                avatar.textContent = '🤔'; 
+            }
+
+            bubble.classList.remove('visible');
+            setTimeout(() => {
+                bubble.innerHTML = message;
+                bubble.classList.add('visible');
+            }, 200);
+        }
+
+        function getRandomPhrase(type) {
+            const list = phrases[type];
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        // --- GAME LOGIC ---
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function generateProblem(mode) {
+            let n1, d1, n2, d2, op, correctN, correctD;
+            
+            const min = state.hardMode ? 2 : 1;
+            const limit = state.hardMode ? 25 : 10; 
+
+            switch(mode) {
+                case 'sameDenom':
+                    d1 = getRandomInt(min + 1, limit);
+                    d2 = d1;
+                    n1 = getRandomInt(min, limit);
+                    n2 = getRandomInt(min, limit);
+                    op = Math.random() > 0.5 ? '+' : '-';
+                    if (!state.hardMode && op === '-' && n1 < n2) [n1, n2] = [n2, n1];
+                    if (op === '+') { correctN = n1 + n2; correctD = d1; }
+                    else { correctN = n1 - n2; correctD = d1; }
+                    break;
+
+                case 'diffDenom':
+                    const dLimit = state.hardMode ? 12 : 6;
+                    d1 = getRandomInt(2, dLimit);
+                    do { d2 = getRandomInt(2, dLimit); } while (d1 === d2);
+                    n1 = getRandomInt(1, dLimit);
+                    n2 = getRandomInt(1, dLimit);
+                    op = Math.random() > 0.5 ? '+' : '-';
+                    if (op === '+') { correctN = (n1 * d2) + (n2 * d1); correctD = d1 * d2; } 
+                    else {
+                        if (!state.hardMode && (n1/d1) < (n2/d2)) { [n1, n2] = [n2, n1]; [d1, d2] = [d2, d1]; }
+                        correctN = (n1 * d2) - (n2 * d1); correctD = d1 * d2;
+                    }
+                    break;
+
+                case 'multDiv':
+                    const mdLimit = state.hardMode ? 12 : 6;
+                    n1 = getRandomInt(1, mdLimit);
+                    d1 = getRandomInt(2, mdLimit);
+                    n2 = getRandomInt(1, mdLimit);
+                    d2 = getRandomInt(2, mdLimit);
+                    op = Math.random() > 0.5 ? '×' : ':';
+                    if (op === '×') { correctN = n1 * n2; correctD = d1 * d2; } 
+                    else { op = ':'; correctN = n1 * d2; correctD = d1 * n2; }
+                    break;
+            }
+            return { n1, d1, n2, d2, op, correctN, correctD };
+        }
+
+        function startGame(mode) {
+            state.mode = mode;
+            state.score = 0;
+            state.currentQuestion = 0;
+            state.combo = 0;
+            showView('gameView');
+            loadNextQuestion();
+            setAssistantState('idle', getRandomPhrase('start'));
+            
+            // Show/Hide indicators
+            document.getElementById('indSimplify').style.display = state.simplifyMode ? 'flex' : 'none';
+            document.getElementById('indHard').style.display = state.hardMode ? 'flex' : 'none';
+        }
+
+        function restartGame() {
+            startGame(state.mode);
+        }
+
+        function loadNextQuestion() {
+            if (state.currentQuestion >= state.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            state.currentProblem = generateProblem(state.mode);
+            state.isAnswerChecked = false;
+
+            // Update UI
+            document.getElementById('feedbackArea').style.display = 'none';
+            document.getElementById('feedbackArea').className = 'feedback-msg';
+            const btn = document.getElementById('actionButton');
+            btn.textContent = '🚀 Comprovar';
+            btn.className = 'btn btn-secondary';
+            btn.onclick = checkAnswer;
+            
+            document.getElementById('currentScore').textContent = state.score;
+            document.getElementById('qNumber').textContent = state.currentQuestion + 1;
+
+            const progress = (state.currentQuestion / state.totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+
+            renderProblem(state.currentProblem);
+            updateComboUI();
+            
+            if(state.currentQuestion > 0) {
+                 setAssistantState('idle', "Quina serà la resposta?");
+            }
+        }
+
+        function renderProblem(p) {
+            const container = document.getElementById('problemContainer');
+            let displayOp = p.op;
+            if(displayOp === '*') displayOp = '×';
+            if(displayOp === '/') displayOp = ':';
+
+            const html = `
+                <div class="fraction">
+                    <span class="numerator">${p.n1}</span>
+                    <span class="denominator">${p.d1}</span>
+                </div>
+                <div class="operator">${displayOp}</div>
+                <div class="fraction">
+                    <span class="numerator">${p.n2}</span>
+                    <span class="denominator">${p.d2}</span>
+                </div>
+                <div class="operator">=</div>
+                <div class="fraction">
+                    <input type="number" id="userN" placeholder="?" autocomplete="off">
+                    <div style="width:100%; height:4px; background:currentColor; margin: 4px 0;"></div>
+                    <input type="number" id="userD" placeholder="?" autocomplete="off">
+                </div>
+            `;
+            container.innerHTML = html;
+            setTimeout(() => document.getElementById('userN').focus(), 100);
+            
+            document.getElementById('userD').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') checkAnswer();
+            });
+            document.getElementById('userN').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') document.getElementById('userD').focus();
+            });
+        }
+
+        function updateComboUI() {
+            const el = document.getElementById('comboDisplay');
+            if(state.combo > 1) {
+                el.textContent = `COMBO x${state.combo}! 🔥`;
+                el.classList.add('combo-active');
+            } else {
+                el.classList.remove('combo-active');
+            }
+        }
+
+        function checkAnswer() {
+            if (state.isAnswerChecked) {
+                state.currentQuestion++;
+                loadNextQuestion();
+                return;
+            }
+
+            const rawN = document.getElementById('userN').value;
+            const rawD = document.getElementById('userD').value;
+            const feedback = document.getElementById('feedbackArea');
+            
+            if (!rawN || !rawD) {
+                const btn = document.getElementById('actionButton');
+                btn.style.animation = "shake 0.3s";
+                setTimeout(() => btn.style.animation = "", 300);
+                setAssistantState('sad', "Has d'omplir els dos camps!");
+                return;
+            }
+
+            const { correctN, correctD } = state.currentProblem;
+            let isCorrect = false;
+            let isSimplified = true;
+            let displayCorrect = "";
+
+            // STANDARD NUMERIC
+            const userN = parseInt(rawN);
+            const userD = parseInt(rawD);
+            
+            if (isNaN(userN) || isNaN(userD) || userD === 0) {
+                 setAssistantState('sad', "Nombres invàlids!");
+                 return;
+            }
+            
+            if ((userN * correctD) === (correctN * userD)) {
+                isCorrect = true;
+                if (state.simplifyMode) {
+                     const common = gcd(userN, userD);
+                     if (common > 1) isSimplified = false;
+                }
+            }
+            const divisor = gcd(correctN, correctD);
+            let simpleN = correctN / divisor;
+            let simpleD = correctD / divisor;
+            if (simpleD < 0) { simpleN = -simpleN; simpleD = -simpleD; }
+            displayCorrect = `${simpleN}/${simpleD}`;
+
+            if (isCorrect) {
+                if (!isSimplified) {
+                    setAssistantState('sad', "Correcte, però simplifica! ✂️");
+                    feedback.innerHTML = `Equivalent, però has de <strong>reduir</strong> la fracció.`;
+                    feedback.className = "feedback-msg feedback-warning";
+                    feedback.style.display = 'block';
+                    return; 
+                }
+
+                state.score++;
+                state.combo++;
+                document.getElementById('currentScore').textContent = state.score;
+                setAssistantState('happy', getRandomPhrase('correct'));
+                feedback.innerHTML = "¡GENIAL! Has encertat 🎉";
+                feedback.className = "feedback-msg feedback-correct";
+                fireConfetti();
+            } else {
+                state.combo = 0; 
+                let msg = getRandomPhrase('wrong') + `<br>Era: <strong>${displayCorrect}</strong>`;
+                setAssistantState('sad', msg);
+                feedback.innerHTML = `Vaja... La solució era <strong>${displayCorrect}</strong>`;
+                feedback.className = "feedback-msg feedback-wrong";
+            }
+
+            feedback.style.display = 'block';
+            updateComboUI();
+            state.isAnswerChecked = true;
+
+            const btn = document.getElementById('actionButton');
+            btn.textContent = 'Següent ➡';
+            btn.className = 'btn btn-primary';
+            btn.onclick = () => {
+                state.currentQuestion++;
+                loadNextQuestion();
+            };
+        }
+
+        function endGame() {
+            showView('resultsView');
+            document.getElementById('finalScore').textContent = state.score;
+            
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(s => s.classList.remove('earned'));
+            
+            let earnedStars = 0;
+            if(state.score >= 5) earnedStars = 1;
+            if(state.score >= 8) earnedStars = 2;
+            if(state.score === 10) earnedStars = 3;
+
+            for(let i=0; i<earnedStars; i++) {
+                setTimeout(() => stars[i].classList.add('earned'), i*200);
+            }
+
+            const msg = document.getElementById('finalMessage');
+            const finalAv = document.getElementById('finalAvatar');
+
+            let difficultyBonus = "";
+            if (state.hardMode) difficultyBonus = " (Difícil!)";
+            if (state.simplifyMode) difficultyBonus += " (Simplificat!)";
+
+            if (state.score === 10) {
+                msg.textContent = "MESTRE SUPREM! Perfecte! 🏆" + difficultyBonus;
+                finalAv.textContent = "😎";
+            } else if (state.score >= 7) {
+                msg.textContent = "Èpic! Molt bona feina! 😎";
+                finalAv.textContent = "😃";
+            } else if (state.score >= 5) {
+                msg.textContent = "Nivell superat! Però pots millorar. 🤔";
+                finalAv.textContent = "🙂";
+            } else {
+                msg.textContent = "Game Over... Torna-ho a intentar! 👾";
+                finalAv.textContent = "😵";
+            }
+        }
+
+        // --- VISUAL EFFECTS ---
+        function fireConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#FF9F43', '#a55eea'];
+            for(let i=0; i<40; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                conf.style.opacity = Math.random();
+                document.body.appendChild(conf);
+                
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // --- NAVIGATION & HELP ---
+        function showView(viewId) {
+            document.querySelectorAll('.game-card').forEach(el => {
+                el.classList.remove('active');
+                el.style.display = 'none';
+            });
+            const active = document.getElementById(viewId);
+            active.style.display = 'block';
+            setTimeout(() => active.classList.add('active'), 10);
+        }
+
+        function showHelp(topic) {
+            const data = helpData[topic];
+            document.getElementById('helpTitle').textContent = data.title;
+            document.getElementById('helpContent').innerHTML = data.html;
+            showView('helpView');
+        }
+
+        function showMenu() {
+            showView('menuView');
+            state.combo = 0;
+        }
+
+        showMenu();
+
+    </script>
+</body>
+</html>
